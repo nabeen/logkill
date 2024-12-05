@@ -1,26 +1,51 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const disposable = vscode.commands.registerCommand(
+    "logkill.DeleteConsoleLog",
+    () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("no active editor");
+        return;
+      }
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "logkill" is now active!');
+      const document = editor.document;
+      const text = document.getText();
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('logkill.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from logkill!');
-	});
+      // console.log を削除
+      const newText = text.replace(/console\.log\(.*?\);?/g, "");
+      const edit = new vscode.WorkspaceEdit();
+      const fullRange = new vscode.Range(
+        document.positionAt(0),
+        document.positionAt(text.length)
+      );
 
-	context.subscriptions.push(disposable);
+      const updatedText = text
+        .split("\n")
+        .map((line) => {
+          const trimmed = line.trim();
+
+          if (/^\s*console\.log\(.*\)\s*;?\s*(\/\/.*)?$/.test(trimmed)) {
+            return "";
+          }
+
+          return line.replace(/console\.log\(.*\)\s*;?/g, "");
+        })
+        .filter((line) => line.trim() !== "")
+        .join("\n");
+
+      edit.replace(document.uri, fullRange, updatedText);
+
+      vscode.workspace.applyEdit(edit).then(() => {
+        vscode.window.showInformationMessage(
+          "(=^・・^=) < goodbye console.log!!"
+        );
+      });
+    }
+  );
+
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

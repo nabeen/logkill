@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "logkill.helloWorld",
-        "title": "Hello World"
+        "command": "logkill.DeleteConsoleLog",
+        "title": "Delete console.log() from current file"
       }
     ]
   },
